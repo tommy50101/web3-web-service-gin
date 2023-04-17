@@ -7,7 +7,8 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"net/http"
-	"time"
+	// "time"
+	"strconv"
 )
 
 // album represents data about a record album.
@@ -36,52 +37,68 @@ type Block struct {
 	ParentHash string
 }
 
+var block = Block{}
+var blocks = []Block{}
+
 // 设置表名，可以通过给struct类型定义 TableName函数，返回当前struct绑定的mysql表名是什么
 func (block Block) TableName() string {
 	// 绑定MYSQL表名为users
 	return "block"
 }
 
+// 配置MySQL连接参数
+var username = "admin"                                            //账号
+var password = "Aaa6542005"                                       //密码
+var host = "aws-mysql-1.cjzwlfgsosmn.us-east-1.rds.amazonaws.com" //数据库地址，可以是Ip或者域名
+var port = 3306                                                   //数据库端口
+var Dbname = "eth"                                                //数据库名
+
+// 通过前面的数据库参数，拼接MYSQL DSN， 其实就是数据库连接串（数据源名称）
+// 类似{username}使用花括号包着的名字都是需要替换的参数
+var dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, Dbname)
+
+// 连接MYSQL
+var db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+// if err != nil {
+// 	panic("连接数据库失败, error=" + err.Error())
+// }
+
 func main() {
 	router := gin.Default()
 	router.GET("/albums", getAlbums)
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
+	router.GET("/blocks", getBlocks)
 
-	//配置MySQL连接参数
-	username := "admin"                                            //账号
-	password := "Aaa6542005"                                       //密码
-	host := "aws-mysql-1.cjzwlfgsosmn.us-east-1.rds.amazonaws.com" //数据库地址，可以是Ip或者域名
-	port := 3306                                                   //数据库端口
-	Dbname := "eth"                                                //数据库名
+	// //定义一个用户，并初始化数据
+	// block := Block{
+	// 	BlockNum:   666,
+	// 	BlockHash:  "0x123456789",
+	// 	BlockTime:  time.Now().Unix(),
+	// 	ParentHash: "0x999999999",
+	// }
 
-	//通过前面的数据库参数，拼接MYSQL DSN， 其实就是数据库连接串（数据源名称）
-	//类似{username}使用花括号包着的名字都是需要替换的参数
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, Dbname)
-	//连接MYSQL
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// //插入一条用户数据
+	// //自动生成SQL语句：INSERT INTO `block` (`block_num`,`block_hash`,`block_time`, `parent_hash`) VALUES (666,'0x123456789',date(),"0x999999999")
+	// if err := db.Create(&block).Error; err != nil {
+	// 	fmt.Println("插入失败", err)
+	// 	return
+	// }
 
-	if err != nil {
-		panic("连接数据库失败, error=" + err.Error())
-	}
+	router.Run("localhost:8080")
+}
 
-	//定义一个用户，并初始化数据
-	block := Block{
-		BlockNum:   666,
-		BlockHash:  "0x123456789",
-		BlockTime:  time.Now().Unix(),
-		ParentHash: "0x999999999",
-	}
+// [GET] /blocks?limit=n
+func getBlocks(c *gin.Context) {
+	limit := c.Query("limit")
+	i, _ := strconv.Atoi(limit)
+	db.Limit(i).Find(&blocks)
+	c.IndentedJSON(http.StatusOK, blocks)
+}
 
-	//插入一条用户数据
-	//自动生成SQL语句：INSERT INTO `block` (`block_num`,`block_hash`,`block_time`, `parent_hash`) VALUES (666,'0x123456789',date(),"0x999999999")
-	if err := db.Create(&block).Error; err != nil {
-		fmt.Println("插入失败", err)
-		return
-	}
-
+func getBlockByID(c *gin.Context) {
 	//查询并返回第一条数据
-	block = Block{}
 	//自动生成sql： SELECT * FROM `block`  WHERE (block_num = 666) LIMIT 1
 	result := db.Where("block_num = ?", 666).First(&block)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -89,9 +106,9 @@ func main() {
 		return
 	}
 	//打印查询到的数据
-	fmt.Println(block.ID, block.BlockNum, block.BlockHash)
+	// fmt.Println(block.ID, block.BlockNum, block.BlockHash)
 
-	router.Run("localhost:8080")
+	c.IndentedJSON(http.StatusOK, block)
 }
 
 // getAlbums responds with the list of all albums as JSON.
