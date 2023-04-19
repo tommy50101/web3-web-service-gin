@@ -18,13 +18,13 @@ type Block struct {
 	gorm.Model
 	BlockNum     uint          `gorm:"column:block_num"`
 	BlockHash    string        `gorm:"column:block_hash"`
-	BlockTime    uint          `gorm:"column:block_time"` // 创建时间，时间戳
+	BlockTime    uint          `gorm:"column:block_time"`
 	ParentHash   string        `gorm:"column:parent_hash"`
 	Transactions []Transaction `gorm:"foreignKey:BlockID"`
 }
 type Transaction struct {
-	BlockID         uint // 預設foriegn key格式
-	TransactionHash string
+	BlockID uint // 預設foriegn key格式
+	TxHash  string
 }
 
 type BlockRes struct {
@@ -35,21 +35,20 @@ type BlockRes struct {
 }
 
 var (
-	block         = Block{}
-	blockRes      = BlockRes{}
-	getBlocksRes  = []BlockRes{}
-	txHashStrList []string
-	dsn           string
-	db            *gorm.DB
+	block        = Block{}
+	blockRes     = BlockRes{}
+	getBlocksRes = []BlockRes{}
+	dsn          string
+	db           *gorm.DB
 )
 
 func (block Block) TableName() string {
-	// 绑定MYSQL表名为block
+	// 绑定MYSQL表名為block
 	return "block"
 }
 
 func (transaction Transaction) TableName() string {
-	// 绑定MYSQL表名为transaction
+	// 绑定MYSQL表名為transaction
 	return "transaction"
 }
 
@@ -95,8 +94,9 @@ func getBlockByID(c *gin.Context) {
 		return
 	}
 
+	var txHashStrList []string
 	for _, a := range block.Transactions {
-		txHashStrList = append(txHashStrList, a.TransactionHash)
+		txHashStrList = append(txHashStrList, a.TxHash)
 	}
 
 	c.JSON(200, gin.H{
