@@ -23,10 +23,21 @@ type Block struct {
 	Transactions []Transaction `gorm:"foreignKey:BlockID"`
 }
 type Transaction struct {
-	BlockID uint // 預設foriegn key格式
+	gorm.Model
 	TxHash  string
+	From    string
+	To      string
+	Nonce   uint
+	Data    string
+	Value   string
+	BlockID uint
+	Logs    []Log
 }
-
+type Log struct {
+	Index         uint
+	Data          string
+	TransactionID uint
+}
 type BlockRes struct {
 	BlockNum   uint
 	BlockHash  string
@@ -36,10 +47,12 @@ type BlockRes struct {
 
 var (
 	block        = Block{}
-	blockRes     = BlockRes{}
 	getBlocksRes = []BlockRes{}
-	dsn          string
-	db           *gorm.DB
+	transaction  = Transaction{}
+	logs         = []Log{}
+
+	dsn string
+	db  *gorm.DB
 )
 
 func (block Block) TableName() string {
@@ -52,6 +65,11 @@ func (transaction Transaction) TableName() string {
 	return "transaction"
 }
 
+func (log Log) TableName() string {
+	// 绑定MYSQL表名為log
+	return "log"
+}
+
 func main() {
 	// 初始化DB
 	initDb()
@@ -59,6 +77,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/blocks", getBlocks)
 	router.GET("/blocks/:id", getBlockByID)
+	router.GET("/transaction/:txHash", getTxByTxHash)
 
 	router.Run("localhost:8080")
 }
@@ -105,5 +124,25 @@ func getBlockByID(c *gin.Context) {
 		"block_time":   block.BlockTime,
 		"parent_hash":  block.ParentHash,
 		"transactions": &txHashStrList,
+	})
+}
+
+// [GET] /transaction/:txHash
+func getTxByTxHash(c *gin.Context) {
+	txHash := c.Param("txHash")
+	result := db.Model(&Transaction{}).Preload("Logs").Where("tx_hash = ?", txHash).First(&transaction)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		fmt.Println("找不到紀錄")
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"tx_hash": transaction.TxHash,
+		"from":    transaction.From,
+		"to":      transaction.To,
+		"nonce":   transaction.Nonce,
+		"data":    transaction.Data,
+		"value":   transaction.Value,
+		"logs":    transaction.Logs,
 	})
 }
