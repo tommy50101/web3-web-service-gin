@@ -30,20 +30,42 @@ var myAlbum album
 var myAlbums []album
 
 type Block struct {
-	ID         int64  `gorm:"column:id"` // 主键
-	BlockNum   int64  `gorm:"column:block_num"`
-	BlockHash  string `gorm:"column:block_hash"`
-	BlockTime  int64  `gorm:"column:block_time"` // 创建时间，时间戳
+	gorm.Model
+	BlockNum     uint   `gorm:"column:block_num"`
+	BlockHash    string `gorm:"column:block_hash"`
+	BlockTime    uint   `gorm:"column:block_time"` // 创建时间，时间戳
+	ParentHash   string `gorm:"column:parent_hash"`
+	Transactions []Transaction
+}
+type Transaction struct {
+	// gorm.Model
+	ID              uint   `gorm:"column:id"` // 主键
+	BlockID         uint   `gorm:"column:block_id"`
+	TransactionHash string `gorm:"column:transaction_hash"`
+	DeletedAt       string `gorm:"type:datetime;column:deleted_at"`
+}
+
+type Result struct {
+	BlockNum   uint
+	BlockHash  string
+	BlockTime  uint
 	ParentHash string
 }
 
 var block = Block{}
 var blocks = []Block{}
 
+var result = Result{}
+
 // 设置表名，可以通过给struct类型定义 TableName函数，返回当前struct绑定的mysql表名是什么
 func (block Block) TableName() string {
-	// 绑定MYSQL表名为users
+	// 绑定MYSQL表名为block
 	return "block"
+}
+
+func (transaction Transaction) TableName() string {
+	// 绑定MYSQL表名为transaction
+	return "transaction"
 }
 
 // 配置MySQL连接参数
@@ -70,6 +92,7 @@ func main() {
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 	router.GET("/blocks", getBlocks)
+	router.GET("/blocks/:id", getBlockByID)
 
 	// //定义一个用户，并初始化数据
 	// block := Block{
@@ -93,22 +116,31 @@ func main() {
 func getBlocks(c *gin.Context) {
 	limit := c.Query("limit")
 	i, _ := strconv.Atoi(limit)
-	db.Limit(i).Find(&blocks)
-	c.IndentedJSON(http.StatusOK, blocks)
+	// result := Result{}
+	db.Model(&Block{}).Select("*").Joins("left join transaction on transaction.block_id = block.id").Limit(i).Find(&result)
+	// result := &Result{}
+	c.IndentedJSON(http.StatusOK, &result)
 }
 
 func getBlockByID(c *gin.Context) {
 	//查询并返回第一条数据
 	//自动生成sql： SELECT * FROM `block`  WHERE (block_num = 666) LIMIT 1
-	result := db.Where("block_num = ?", 666).First(&block)
+	id := c.Param("id")
+	result := db.Model(&Block{}).Preload("Transactions").Where("id = ?", id).First(&block)
+
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		fmt.Println("找不到记录")
 		return
 	}
-	//打印查询到的数据
-	// fmt.Println(block.ID, block.BlockNum, block.BlockHash)
+	// c.IndentedJSON(http.StatusOK, &result)
 
-	c.IndentedJSON(http.StatusOK, block)
+	c.JSON(200, gin.H{
+		"block_num":    block.BlockNum,
+		"block_hash":   block.BlockHash,
+		"block_time":   block.BlockTime,
+		"parent_hash":  block.ParentHash,
+		"transactions": block.Transactions,
+	})
 }
 
 // getAlbums responds with the list of all albums as JSON.
