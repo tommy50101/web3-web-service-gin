@@ -4,26 +4,26 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	// "net/http"
-	// "time"
-	_ "github.com/joho/godotenv/autoload"
+	"net/http"
 	"os"
-	// "reflect"
 	"strconv"
 )
 
 type Block struct {
 	gorm.Model
-	BlockNum     uint          `gorm:"column:block_num"`
-	BlockHash    string        `gorm:"column:block_hash"`
-	BlockTime    uint          `gorm:"column:block_time"`
-	ParentHash   string        `gorm:"column:parent_hash"`
-	Transactions []Transaction `gorm:"foreignKey:BlockID"`
+	ID           uint
+	BlockNum     uint
+	BlockHash    string
+	BlockTime    uint
+	ParentHash   string
+	Transactions []Transaction
 }
 type Transaction struct {
 	gorm.Model
+	ID      uint
 	TxHash  string
 	From    string
 	To      string
@@ -33,24 +33,41 @@ type Transaction struct {
 	BlockID uint
 	Logs    []Log
 }
-type Log struct {
-	Index         uint
-	Data          string
-	TransactionID uint
-}
 type BlockRes struct {
-	BlockNum   uint
-	BlockHash  string
-	BlockTime  uint
-	ParentHash string
+	BlockNum   uint   `json:"block_num"`
+	BlockHash  string `json:"block_hash"`
+	BlockTime  uint   `json:"block_time"`
+	ParentHash string `json:"parent_hash"`
+}
+type BlockByIdRes struct {
+	BlockNum     uint     `json:"block_num"`
+	BlockHash    string   `json:"block_hash"`
+	BlockTime    uint     `json:"block_time"`
+	ParentHash   string   `json:"parent_hash"`
+	Transactions []string `json:"transactions"`
+}
+type TxRes struct {
+	TxHash string `json:"tx_hash"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Nonce  uint   `json:"nonce"`
+	Data   string `json:"data"`
+	Value  string `json:"value"`
+	Logs   []Log  `json:"logs"`
+}
+type Log struct {
+	Index         uint   `json:"index"`
+	Data          string `json:"data"`
+	TransactionID uint   `json:"-"`
 }
 
 var (
-	block        = Block{}
-	getBlocksRes = []BlockRes{}
-	transaction  = Transaction{}
-	logs         = []Log{}
+	block       = Block{}
+	blocks      = []Block{}
+	transaction = Transaction{}
+)
 
+var (
 	dsn string
 	db  *gorm.DB
 )
@@ -88,7 +105,7 @@ func initDb() {
 	host := os.Getenv("DB_HOST")
 	port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
 	Dbname := os.Getenv("DB_NAME")
-	// 連線
+	// 連線Db
 	dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local", username, password, host, port, Dbname)
 	db, _ = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 }
@@ -97,10 +114,21 @@ func initDb() {
 func getBlocks(c *gin.Context) {
 	limit := c.Query("limit")
 	i, _ := strconv.Atoi(limit)
-	db.Model(&Block{}).Limit(i).Find(&getBlocksRes)
+	db.Model(&Block{}).Limit(i).Find(&blocks)
+
+	blocksRes := []BlockRes{}
+	for _, value := range blocks {
+		blockRes := BlockRes{
+			BlockNum:   value.BlockNum,
+			BlockHash:  value.BlockHash,
+			BlockTime:  value.BlockTime,
+			ParentHash: value.ParentHash,
+		}
+		blocksRes = append(blocksRes, blockRes)
+	}
 
 	c.JSON(200, gin.H{
-		"blocks": &getBlocksRes,
+		"blocks": blocksRes,
 	})
 }
 
@@ -118,13 +146,14 @@ func getBlockByID(c *gin.Context) {
 		txHashStrList = append(txHashStrList, a.TxHash)
 	}
 
-	c.JSON(200, gin.H{
-		"block_num":    block.BlockNum,
-		"block_hash":   block.BlockHash,
-		"block_time":   block.BlockTime,
-		"parent_hash":  block.ParentHash,
-		"transactions": &txHashStrList,
-	})
+	blockByIdRes := BlockByIdRes{
+		BlockNum:     block.BlockNum,
+		BlockHash:    block.BlockHash,
+		BlockTime:    block.BlockTime,
+		ParentHash:   block.ParentHash,
+		Transactions: txHashStrList,
+	}
+	c.IndentedJSON(http.StatusOK, blockByIdRes)
 }
 
 // [GET] /transaction/:txHash
@@ -136,13 +165,14 @@ func getTxByTxHash(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"tx_hash": transaction.TxHash,
-		"from":    transaction.From,
-		"to":      transaction.To,
-		"nonce":   transaction.Nonce,
-		"data":    transaction.Data,
-		"value":   transaction.Value,
-		"logs":    transaction.Logs,
-	})
+	var txRes = TxRes{
+		TxHash: transaction.TxHash,
+		From:   transaction.From,
+		To:     transaction.To,
+		Nonce:  transaction.Nonce,
+		Data:   transaction.Data,
+		Value:  transaction.Value,
+		Logs:   transaction.Logs,
+	}
+	c.IndentedJSON(http.StatusOK, txRes)
 }
