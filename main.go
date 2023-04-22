@@ -33,6 +33,12 @@ type Transaction struct {
 	BlockID uint64
 	Logs    []Log
 }
+type Log struct {
+	gorm.Model
+	Index         uint64
+	Data          string
+	TransactionID uint64
+}
 type BlockRes struct {
 	BlockNum   uint64 `json:"block_num"`
 	BlockHash  string `json:"block_hash"`
@@ -47,18 +53,17 @@ type BlockByIdRes struct {
 	Transactions []string `json:"transactions"`
 }
 type TxRes struct {
-	TxHash string `json:"tx_hash"`
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Nonce  uint64 `json:"nonce"`
-	Data   []byte `json:"data"`
-	Value  string `json:"value"`
-	Logs   []Log  `json:"logs"`
+	TxHash string   `json:"tx_hash"`
+	From   string   `json:"from"`
+	To     string   `json:"to"`
+	Nonce  uint64   `json:"nonce"`
+	Data   []byte   `json:"data"`
+	Value  string   `json:"value"`
+	Logs   []LogRes `json:"logs"`
 }
-type Log struct {
-	Index         uint64 `json:"index"`
-	Data          string `json:"data"`
-	TransactionID uint64 `json:"-"`
+type LogRes struct {
+	Index uint64 `json:"index"`
+	Data  string `json:"data"`
 }
 
 var (
@@ -157,6 +162,15 @@ func getTxByTxHash(c *gin.Context) {
 		return
 	}
 
+	var logsRes []LogRes
+	for _, a := range transaction.Logs {
+		logRes := LogRes{
+			Index: a.Index,
+			Data:  a.Data,
+		}
+		logsRes = append(logsRes, logRes)
+	}
+
 	var txRes = TxRes{
 		TxHash: transaction.TxHash,
 		From:   transaction.From,
@@ -164,7 +178,7 @@ func getTxByTxHash(c *gin.Context) {
 		Nonce:  transaction.Nonce,
 		Data:   transaction.Data,
 		Value:  transaction.Value,
-		Logs:   transaction.Logs,
+		Logs:   logsRes,
 	}
 	c.IndentedJSON(http.StatusOK, txRes)
 }
