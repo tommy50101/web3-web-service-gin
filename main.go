@@ -12,79 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type Block struct {
-	gorm.Model
-	ID           uint64
-	BlockNum     uint64
-	BlockHash    string
-	BlockTime    uint64
-	ParentHash   string
-	Transactions []Transaction
-}
-type Transaction struct {
-	gorm.Model
-	ID      uint64
-	TxHash  string
-	From    string
-	To      string
-	Nonce   uint64
-	Data    []byte
-	Value   string
-	BlockID uint64
-	Logs    []Log
-}
-type Log struct {
-	gorm.Model
-	Index         uint64
-	Data          string
-	TransactionID uint64
-}
-type BlockRes struct {
-	BlockNum   uint64 `json:"block_num"`
-	BlockHash  string `json:"block_hash"`
-	BlockTime  uint64 `json:"block_time"`
-	ParentHash string `json:"parent_hash"`
-}
-type BlockByIdRes struct {
-	BlockNum     uint64   `json:"block_num"`
-	BlockHash    string   `json:"block_hash"`
-	BlockTime    uint64   `json:"block_time"`
-	ParentHash   string   `json:"parent_hash"`
-	Transactions []string `json:"transactions"`
-}
-type TxRes struct {
-	TxHash string   `json:"tx_hash"`
-	From   string   `json:"from"`
-	To     string   `json:"to"`
-	Nonce  uint64   `json:"nonce"`
-	Data   []byte   `json:"data"`
-	Value  string   `json:"value"`
-	Logs   []LogRes `json:"logs"`
-}
-type LogRes struct {
-	Index uint64 `json:"index"`
-	Data  string `json:"data"`
-}
-
 var (
 	dsn string
 	db  *gorm.DB
 )
-
-func (block Block) TableName() string {
-	// 绑定MYSQL表名為block
-	return "block"
-}
-
-func (transaction Transaction) TableName() string {
-	// 绑定MYSQL表名為transaction
-	return "transaction"
-}
-
-func (log Log) TableName() string {
-	// 绑定MYSQL表名為log
-	return "log"
-}
 
 func main() {
 	// 初始化DB
