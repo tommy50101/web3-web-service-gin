@@ -63,12 +63,6 @@ type Log struct {
 }
 
 var (
-	block       = Block{}
-	blocks      = []Block{}
-	transaction = Transaction{}
-)
-
-var (
 	dsn string
 	db  *gorm.DB
 )
@@ -113,6 +107,7 @@ func initDb() {
 
 // [GET] /blocks?limit=n
 func getBlocks(c *gin.Context) {
+	blocks := []Block{}
 	limit := c.Query("limit")
 	i, _ := strconv.Atoi(limit)
 	db.Model(&Block{}).Limit(i).Find(&blocks)
@@ -135,6 +130,7 @@ func getBlocks(c *gin.Context) {
 
 // [GET] /blocks/:id
 func getBlockByID(c *gin.Context) {
+	block := Block{}
 	id := c.Param("id")
 	result := db.Model(&Block{}).Preload("Transactions").Where("id = ?", id).First(&block)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -159,6 +155,7 @@ func getBlockByID(c *gin.Context) {
 
 // [GET] /transaction/:txHash
 func getTxByTxHash(c *gin.Context) {
+	transaction := Transaction{}
 	txHash := c.Param("txHash")
 	result := db.Model(&Transaction{}).Preload("Logs").Where("tx_hash = ?", txHash).First(&transaction)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
