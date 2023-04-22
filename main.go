@@ -3,46 +3,47 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 type Block struct {
 	gorm.Model
-	ID           uint
-	BlockNum     uint
+	ID           uint64
+	BlockNum     uint64
 	BlockHash    string
-	BlockTime    uint
+	BlockTime    uint64
 	ParentHash   string
 	Transactions []Transaction
 }
 type Transaction struct {
 	gorm.Model
-	ID      uint
+	ID      uint64
 	TxHash  string
 	From    string
 	To      string
-	Nonce   uint
-	Data    string
+	Nonce   uint64
+	Data    []byte
 	Value   string
-	BlockID uint
+	BlockID uint64
 	Logs    []Log
 }
 type BlockRes struct {
-	BlockNum   uint   `json:"block_num"`
+	BlockNum   uint64 `json:"block_num"`
 	BlockHash  string `json:"block_hash"`
-	BlockTime  uint   `json:"block_time"`
+	BlockTime  uint64 `json:"block_time"`
 	ParentHash string `json:"parent_hash"`
 }
 type BlockByIdRes struct {
-	BlockNum     uint     `json:"block_num"`
+	BlockNum     uint64   `json:"block_num"`
 	BlockHash    string   `json:"block_hash"`
-	BlockTime    uint     `json:"block_time"`
+	BlockTime    uint64   `json:"block_time"`
 	ParentHash   string   `json:"parent_hash"`
 	Transactions []string `json:"transactions"`
 }
@@ -50,15 +51,15 @@ type TxRes struct {
 	TxHash string `json:"tx_hash"`
 	From   string `json:"from"`
 	To     string `json:"to"`
-	Nonce  uint   `json:"nonce"`
-	Data   string `json:"data"`
+	Nonce  uint64 `json:"nonce"`
+	Data   []byte `json:"data"`
 	Value  string `json:"value"`
 	Logs   []Log  `json:"logs"`
 }
 type Log struct {
-	Index         uint   `json:"index"`
+	Index         uint64 `json:"index"`
 	Data          string `json:"data"`
-	TransactionID uint   `json:"-"`
+	TransactionID uint64 `json:"-"`
 }
 
 var (
