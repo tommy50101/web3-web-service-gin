@@ -28,7 +28,7 @@ type Transaction struct {
 type Log struct {
 	gorm.Model
 	Index         uint64
-	Data          string
+	Data          []byte
 	TransactionID uint64
 }
 

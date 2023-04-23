@@ -27,5 +27,5 @@ type TxRes struct {
 
 type LogRes struct {
 	Index uint64 `json:"index"`
-	Data  string `json:"data"`
+	Data  []byte `json:"data"`
 }
