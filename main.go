@@ -80,7 +80,7 @@ func getBlockByID(c *gin.Context) {
 		ParentHash:   block.ParentHash,
 		Transactions: txHashStrList,
 	}
-	c.IndentedJSON(http.StatusOK, blockByIdRes)
+	c.JSON(http.StatusOK, blockByIdRes)
 }
 
 // [GET] /transaction/:txHash
@@ -111,5 +111,5 @@ func getTxByTxHash(c *gin.Context) {
 		Value:  transaction.Value,
 		Logs:   logsRes,
 	}
-	c.IndentedJSON(http.StatusOK, txRes)
+	c.JSON(http.StatusOK, txRes)
 }
