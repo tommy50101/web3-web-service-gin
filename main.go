@@ -40,7 +40,7 @@ func getBlocks(c *gin.Context) {
 	blocks := []Block{}
 	limit := c.Query("limit")
 	i, _ := strconv.Atoi(limit)
-	db.Model(&Block{}).Limit(i).Find(&blocks)
+	db.Model(&Block{}).Limit(i).Order("block_num desc").Find(&blocks)
 
 	blocksRes := []BlockRes{}
 	for _, value := range blocks {
