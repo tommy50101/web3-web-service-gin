@@ -6,5 +6,5 @@
 *.dylib
 *.test
 *.out
-# vendor/
 go.work
+.DS_Store
