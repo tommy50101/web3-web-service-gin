@@ -20,12 +20,12 @@ type TxRes struct {
 	From   string   `json:"from"`
 	To     string   `json:"to"`
 	Nonce  uint64   `json:"nonce"`
-	Data   []byte   `json:"data"`
+	Data   string   `json:"data"`
 	Value  string   `json:"value"`
 	Logs   []LogRes `json:"logs"`
 }
 
 type LogRes struct {
 	Index uint64 `json:"index"`
-	Data  []byte `json:"data"`
+	Data  string `json:"data"`
 }

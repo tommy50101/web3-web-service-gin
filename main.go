@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -62,7 +63,7 @@ func getBlocks(c *gin.Context) {
 func getBlockByID(c *gin.Context) {
 	block := Block{}
 	id := c.Param("id")
-	result := db.Model(&Block{}).Preload("Transactions").Where("id = ?", id).First(&block)
+	result := db.Model(&Block{}).Preload("Transactions").Where("block_num = ?", id).First(&block)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		fmt.Println("找不到紀錄")
 		return
@@ -97,7 +98,7 @@ func getTxByTxHash(c *gin.Context) {
 	for _, a := range transaction.Logs {
 		logRes := LogRes{
 			Index: a.Index,
-			Data:  a.Data,
+			Data:  "0x" + hex.EncodeToString(a.Data),
 		}
 		logsRes = append(logsRes, logRes)
 	}
@@ -107,7 +108,7 @@ func getTxByTxHash(c *gin.Context) {
 		From:   transaction.From,
 		To:     transaction.To,
 		Nonce:  transaction.Nonce,
-		Data:   transaction.Data,
+		Data:   "0x" + hex.EncodeToString(transaction.Data),
 		Value:  transaction.Value,
 		Logs:   logsRes,
 	}
