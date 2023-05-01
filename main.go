@@ -23,34 +23,37 @@ var (
 )
 
 func main() {
-	// 判斷開啟哪個鏈的服務
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("請輸入要查詢哪個鏈上的資訊: 1.BSC testnet   2.Ethereum testnet(goerli) ")
-	fmt.Print("-> ")
-	text, err := reader.ReadString('\n')
-	if err != nil {
-		log.Fatal(err)
-	}
-	if text[:len(text)-1] != "1" && text[:len(text)-1] != "2" {
-		log.Fatal("不合法的輸入")
-	}
-
-	// 依照輸入選擇不同庫
-	if text[:len(text)-1] == "1" {
-		dbName = "bsc_testnet"
-	} else {
-		dbName = "eth_testnet_goerli"
-	}
-
-	// 初始化DB
+	checkArgs()
 	initDb()
 
 	router := gin.Default()
 	router.GET("/blocks", getBlocks)
 	router.GET("/blocks/:id", getBlockByID)
 	router.GET("/transaction/:txHash", getTxByTxHash)
-
 	router.Run("localhost:8080")
+}
+
+// 判斷開啟哪個鏈的服務
+func checkArgs() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("請輸入要查詢哪個鏈上的資訊: 1.BSC testnet   2.Ethereum testnet(goerli)   3.Ethereum mainnet ")
+	fmt.Print("-> ")
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
+	if text[:len(text)-1] != "1" && text[:len(text)-1] != "2" && text[:len(text)-1] != "3" {
+		log.Fatal("不合法的輸入")
+	}
+
+	// 依照輸入選擇不同庫
+	if text[:len(text)-1] == "1" {
+		dbName = "bsc_testnet"
+	} else if text[:len(text)-1] == "2" {
+		dbName = "eth_testnet_goerli"
+	} else {
+		dbName = "eth_mainnet"
+	}
 }
 
 func initDb() {
