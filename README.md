@@ -20,8 +20,13 @@ $ go run .
 
 執行後，可透過輸入以選擇要獲取哪個鏈的資料，參數對應如下:
 
-1:BSC testnet  2:Ethereum testnet(Goerli)  3:Ethereum mainnet
+1: BSC testnet  
 
+2: Ethereum testnet(Goerli)  
+
+3: Ethereum mainnet
+
+<br/>
 服務成功啟動後，可呼叫以下3支API
 
 ```
@@ -38,9 +43,16 @@ $ go run .
 
 ```
 
+<br/>
 以下為實際使用範例:
 
+<br/>
+<br/>
+-Request:
+
 http://localhost:8080/blocks?limit=3
+
+-Response
 
 ```JSON
 {
@@ -68,7 +80,12 @@ http://localhost:8080/blocks?limit=3
 
 ```
 
+<br/>
+-Request:
+
 http://localhost:8080/blocks/29416069
+
+-Response
 
 ```JSON
 {
@@ -85,7 +102,12 @@ http://localhost:8080/blocks/29416069
 
 ```
 
+<br/>
+-Request:
+
 http://localhost:8080/transaction/0xb2212e28841b647ed40c1729bc3a970808089aa7f5ffbb3567572680a7077da3
+
+-Response
 
 ```JSON
 {
