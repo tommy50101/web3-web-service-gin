@@ -76,6 +76,7 @@ func getBlocks(c *gin.Context) {
 			BlockHash:  value.BlockHash,
 			BlockTime:  value.BlockTime,
 			ParentHash: value.ParentHash,
+			IsStable:   value.IsStable,
 		}
 		blocksRes = append(blocksRes, blockRes)
 	}
@@ -105,6 +106,7 @@ func getBlockByID(c *gin.Context) {
 		BlockHash:    block.BlockHash,
 		BlockTime:    block.BlockTime,
 		ParentHash:   block.ParentHash,
+		IsStable:     block.IsStable,
 		Transactions: txHashStrList,
 	}
 	c.JSON(http.StatusOK, blockByIdRes)

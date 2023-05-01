@@ -20,31 +20,34 @@ $ go run .
 
 執行後，可透過輸入以選擇要獲取哪個鏈的資料，參數對應如下:
 
-1: BSC testnet  
-
-2: Ethereum testnet(Goerli)  
-
-3: Ethereum mainnet
+1: BSC testnet &nbsp;&nbsp; 2: Ethereum testnet(Goerli) &nbsp;&nbsp; 3: Ethereum mainnet
 
 <br/>
-服務成功啟動後，可呼叫以下3支API
+服務成功啟動後，可呼叫以下3支API:
 
-```
-1. 回傳最新的 n 個 blocks
+<br/>
+<br/>
+1.回傳最新的 n 個 blocks
+
 [GET]http://localhost:8080/blocks?limit=n
 
+<br/>
+2.回傳單一 block by block id 
 
-2. 回傳單一 block by block id ( 這邊的 id 為 Block Number )
-[GET]http://localhost:8080/blocks/:id
-
-
-3. 回傳 transaction data with event logs
-[GET]http://localhost:8080/transaction/:tx_hash
-
-```
+[GET]http://localhost:8080/blocks/:id &nbsp;&nbsp; ( <font color=#FF6600>**這邊的 id 是指 Block Number**</font> )
 
 <br/>
-以下為實際使用範例:
+3.回傳 transaction data with event logs
+
+[GET]http://localhost:8080/transaction/:tx_hash
+
+<br/>
+
+``blocks`` 和 ``blocks/:id`` 這兩支API會多回傳 ``is_stable`` 欄位，代表是否為穩定區塊
+
+## Example
+
+以下為實際呼叫範例 (輸入參數為 1) :
 
 <br/>
 <br/>
@@ -61,19 +64,22 @@ http://localhost:8080/blocks?limit=3
             "block_num": 29416071,
             "block_hash": "0xa8e04350f61bbc49eba595357b7c03a34689fbbb819e9dcb49354b869d143f37",
             "block_time": 1682940170,
-            "parent_hash": "0xc21cf3190370359aa49298f256d8030119dd86d14535746e10292f4c0c8a4fdb"
+            "parent_hash": "0xc21cf3190370359aa49298f256d8030119dd86d14535746e10292f4c0c8a4fdb",
+            "is_stable": true
         },
         {
             "block_num": 29416070,
             "block_hash": "0xc21cf3190370359aa49298f256d8030119dd86d14535746e10292f4c0c8a4fdb",
             "block_time": 1682940167,
-            "parent_hash": "0x532c6341f7cd9fb8b03e593f398f189c55663ed156033797fe1690d1631f251b"
+            "parent_hash": "0x532c6341f7cd9fb8b03e593f398f189c55663ed156033797fe1690d1631f251b",
+            "is_stable": true
         },
         {
             "block_num": 29416069,
             "block_hash": "0x532c6341f7cd9fb8b03e593f398f189c55663ed156033797fe1690d1631f251b",
             "block_time": 1682940164,
-            "parent_hash": "0xce390e89149143e07d41ad37ff8785d20fdcbec7dc7e1a1f7af2ee957d29c428"
+            "parent_hash": "0xce390e89149143e07d41ad37ff8785d20fdcbec7dc7e1a1f7af2ee957d29c428",
+            "is_stable": true
         }
     ]
 }
@@ -93,6 +99,7 @@ http://localhost:8080/blocks/29416069
     "block_hash": "0x532c6341f7cd9fb8b03e593f398f189c55663ed156033797fe1690d1631f251b",
     "block_time": 1682940164,
     "parent_hash": "0xce390e89149143e07d41ad37ff8785d20fdcbec7dc7e1a1f7af2ee957d29c428",
+    "is_stable": true,
     "transactions": [
         "0x4f6a80e9a00fdd3de6a0fd582ad1157f1b6752eed06a7a13171e9ceef899d462",
         "0x38eceecd7a121aa9d7a71b3a7a1d719592e1490ca6c6cff78663a82c56a7d55f",

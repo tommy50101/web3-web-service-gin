@@ -5,6 +5,7 @@ type BlockRes struct {
 	BlockHash  string `json:"block_hash"`
 	BlockTime  uint64 `json:"block_time"`
 	ParentHash string `json:"parent_hash"`
+	IsStable   bool   `json:"is_stable"`
 }
 
 type BlockByIdRes struct {
@@ -12,6 +13,7 @@ type BlockByIdRes struct {
 	BlockHash    string   `json:"block_hash"`
 	BlockTime    uint64   `json:"block_time"`
 	ParentHash   string   `json:"parent_hash"`
+	IsStable     bool     `json:"is_stable"`
 	Transactions []string `json:"transactions"`
 }
 
